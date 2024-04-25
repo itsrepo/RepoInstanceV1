@@ -1390,7 +1390,7 @@ local IgnoreSharedStrings = OPTIONS.IgnoreSharedStrings
 		end
 		if OPTIONS.ReadMe then
 			saveextra("README", nil, "Script", "--[[\n" .. [[
-			Thank you for using SynSaveInstance Revival.
+			Thank you for using RepoSaveinstance
 			We recommended to save the game right away to take advantage of the binary format (if you didn't save in binary) AND to preserve values of certain properties if you used IgnoreDefaultProperties setting (as they might change in the future).
 			If your player cannot spawn into the game, please move the scripts in StarterPlayer elsewhere. (This is done by default)
 			If the chat system does not work, please use the explorer and delete everything inside the Chat service. 
@@ -1492,8 +1492,8 @@ local ExtraTime = 10
 				StatusTextClone.Text = string.format("Saved! Time %.2f seconds; Size %s", elapse_t, getsizeformat())
 				task.wait(Log10 * 2 + ExtraTime)
 			else
-				StatusTextClone.Text = "Failed! Check F9 console for more info"
-				warn("Error found while saving")
+				StatusTextClone.Text = "Failed! Check F9 console for more info :'("
+				warn("Error found while saving.")
 				warn("Information about error:")
 				warn(err)
 				task.wait(Log10 + ExtraTime)
