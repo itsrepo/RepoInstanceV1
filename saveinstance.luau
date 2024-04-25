@@ -1708,7 +1708,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 											value = ldecompile(instance)
 										end
 									end
-									value = "-- Saved by RepoInstance https://discord.gg/wx4ThpAsmw\n\n <= credits to them"
+									value = "-- Saved by RepoInstance "
 										.. value
 								end
 
