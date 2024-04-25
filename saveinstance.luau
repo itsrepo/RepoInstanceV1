@@ -1,6 +1,3 @@
---!native
--- https://discord.gg/wx4ThpAsmw
-
 local Params = {
 	RepoURL = "https://raw.githubusercontent.com/luau/SomeHub/main/",
 	UMF = "UniversalMethodFinder",
