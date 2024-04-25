@@ -716,11 +716,15 @@ local inheritedproperties = setmetatable({}, {
 })
 
 local classreplicas = setmetatable({}, {
-	__index = function(self, ClassName)
-		local Replica = Instance.new(ClassName) -- ! Might need to pcall this
-		self[ClassName] = Replica
-		return Replica
-	end,
+    __index = function(self, ClassName)
+        local success, Replica = pcall(Instance.new, ClassName)
+        if success then
+            self[ClassName] = Replica
+            return Replica
+        else
+            return nil
+        end
+    end,
 })
 
 local referents = setmetatable({
