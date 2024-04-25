@@ -1451,7 +1451,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 		total ..= savestr
 		writefile(placename, total)
 		if StatusText then
-			StatusText.Text = "Saving.. Size: " .. getsizeformat()
+			StatusText.Text = "File is saving.. Current size: " .. getsizeformat()
 		end
 		savebuffer = {}
 		task.wait()
