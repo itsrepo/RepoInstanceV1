@@ -1860,7 +1860,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 				"Script",
 				"--[[\n"
 					.. [[
-		Thank you for using UniversalSynSaveInstance.
+		Thank you for using the best rigged instance by itsrepo. ( i did NOT make this)
 
 		If you didn't save in Binary - we recommended to save the game right away to take advantage of the binary format & to preserve values of certain properties if you used IgnoreDefaultProperties setting (as they might change in the future).
 		You can do that by going to FILE -> Save to File As -> Make sure File Name ends with .rbxl -> Save
