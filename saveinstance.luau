@@ -1700,15 +1700,15 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 											and instance:IsA("Script")
 											and instance.RunContext ~= Enum.RunContext.Client
 									then
-										value = "-- Server Scripts can NOT be decompiled" --TODO: Could be not just server scripts in the future
+										value = "-- Yea right, u cannot decompile this lol" --TODO: Could be not just server scripts in the future
 									else
 										if DecompileIgnoring then
-											value = "-- Ignored"
+											value = "-- ignored.............."
 										else
 											value = ldecompile(instance)
 										end
 									end
-									value = "-- Saved by UniversalSynSaveInstance https://discord.gg/wx4ThpAsmw\n\n"
+									value = "-- Saved by RepoInstance https://discord.gg/wx4ThpAsmw\n\n <= credits to them"
 										.. value
 								end
 
@@ -1860,7 +1860,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 				"Script",
 				"--[[\n"
 					.. [[
-		Thank you for using the best rigged instance by itsrepo. ( i did NOT make this)
+		Thank you for using the best rigged instance by itsrepo. ( i did NOT make this, i just changed the info credits for the ppl who did make this)
 
 		If you didn't save in Binary - we recommended to save the game right away to take advantage of the binary format & to preserve values of certain properties if you used IgnoreDefaultProperties setting (as they might change in the future).
 		You can do that by going to FILE -> Save to File As -> Make sure File Name ends with .rbxl -> Save
