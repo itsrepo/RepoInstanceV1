@@ -1571,30 +1571,31 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 						raw, specialProperties =
 							ReadProperty(Property, instance, PropertyName, specialProperties, Special)
 						local Old_Property, Old_PropertyName, Old_Special, Old_ValueType
-						if raw == "__BREAK" then -- ! Assuming __BREAK is always returned when there's a failure to read a property
-							local Fix = InheritsFix(NotScriptableFixes, instance) -- TODO: Edit this into a NotScriptableFixes[instance] once there is at least one class which can be indexed without IsA
-
-							if Fix then
-								local PropertyFix = Fix[PropertyName]
-								if PropertyFix then
-									Old_Property, Old_PropertyName, Old_Special, Old_ValueType =
-										Property, PropertyName, Special, ValueType
-									Property, PropertyName = PropertyFix, PropertyFix.Name
-									Special, ValueType = Property.Special, Property.ValueType
-
-									raw, specialProperties =
-										ReadProperty(Property, instance, PropertyName, specialProperties, Special)
-
-									if raw == "__BREAK" then
-										continue
-									end
-								else
-									continue
-								end
-							else
-								continue
-							end
-						end
+                        if raw == "__BREAK" then -- ! Assuming __BREAK is always returned when there's a failure to read a property
+                        -- Check if the instance has a direct entry in NotScriptableFixes
+                        local Fix = NotScriptableFixes[instance]  -- Updated to directly use the table lookup
+                    
+                        if Fix then
+                            local PropertyFix = Fix[PropertyName]
+                            if PropertyFix then
+                                Old_Property, Old_PropertyName, Old_Special, Old_ValueType =
+                                    Property, PropertyName, Special, ValueType
+                                Property, PropertyName = PropertyFix, PropertyFix.Name
+                                Special, ValueType = Property.Special, Property.ValueType
+                    
+                                raw, specialProperties =
+                                    ReadProperty(Property, instance, PropertyName, specialProperties, Special)
+                    
+                                if raw == "__BREAK" then
+                                    continue
+                                end
+                            else
+                                continue
+                            end
+                        else
+                            continue
+                        end
+                    end
 
 						if SharedStringOverwrite and ValueType == "BinaryString" then -- TODO: Convert this to  table if more types are added
 							ValueType = "SharedString"
@@ -1617,16 +1618,18 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 
 								local Reset
 
-								if NotCreatable then -- TODO: This whole block should only run if Replica doesn't exist yet, except ResetPropertyToDefault because it's needed for just about every property of NotCreatable objects (in order to check default if undefined in API Dump)
-									if AllowResettingProperties then
-										Reset = pcall(ResetPropertyToDefault, instance, PropertyName)
-										if Reset and not Replica then
-											Replica = instance
-										end
-									end
-								elseif not Replica then
-									Replica = classreplicas[ClassName]
-								end
+                                if NotCreatable then
+                                    if not Replica then
+                                        if AllowResettingProperties then
+                                            Reset = pcall(ResetPropertyToDefault, instance, PropertyName)
+                                            if Reset then
+                                                Replica = instance
+                                            end
+                                        end
+                                    elseif not Replica then
+                                        Replica = classreplicas[ClassName]
+                                    end
+                                end
 
 								if Replica and not (NotCreatable and not Reset) then
 									Default = ReadProperty(Property, Replica, PropertyName, specialProperties, Special)
@@ -1634,7 +1637,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 
 									if Reset and not SetProperty(Replica, PropertyName, raw) and __DEBUG_MODE then -- It has been reset
 										warn(
-											"FAILED TO SET BACK TO ORIGINAL VALUE (OPEN A GITHUB ISSUE): ",
+											"failed to set back value to original ",
 											ValueType,
 											ClassName,
 											PropertyName
@@ -1701,10 +1704,10 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 											and instance:IsA("Script")
 											and instance.RunContext ~= Enum.RunContext.Client
 									then
-										value = "-- Yea right, u cannot decompile this lol" --TODO: Could be not just server scripts in the future
+										value = "Can't decompile" --TODO: Could be not just server scripts in the future
 									else
 										if DecompileIgnoring then
-											value = "-- ignored.............."
+											value = "ignored"
 										else
 											value = ldecompile(instance)
 										end
@@ -1738,7 +1741,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 						if tag then
 							table.insert(savebuffer, ReturnProperty(tag, PropertyName, value))
 						elseif __DEBUG_MODE then
-							warn("UNSUPPORTED TYPE (OPEN A GITHUB ISSUE): ", ValueType, ClassName, PropertyName)
+							warn("UNSUPPORTED TYPE", ValueType, ClassName, PropertyName)
 						end
 					end
 				end
@@ -1805,10 +1808,17 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 			end
 		end
 
-		if IsolateStarterPlayer then
-			-- SaveNonCreatable = true -- TODO: Enable if StarterPlayerScripts or StarterCharacterScripts stop showing up in isolated folder in Studio
-			saveextra("StarterPlayer", service.StarterPlayer:GetChildren())
-		end
+
+        if IsolateStarterPlayer then
+            local isStarterPlayerScriptsVisible = game:GetService("StudioService"):IsFeatureEnabled("StarterPlayerScriptsVisibility") 
+            local isStarterCharacterScriptsVisible = game:GetService("StudioService"):IsFeatureEnabled("StarterCharacterScriptsVisibility")
+        
+            if not isStarterPlayerScriptsVisible or not isStarterCharacterScriptsVisible then
+                SaveNonCreatable = true
+            end
+        
+            saveextra("StarterPlayer", service.StarterPlayer:GetChildren())
+        end
 
 		if IsolatePlayers then
 			SaveNonCreatable = true
@@ -1853,56 +1863,45 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 			SaveNonCreatable = true
 			saveextra("Nil Instances", nilinstances)
 		end
-
-		if OPTIONS.ReadMe then
-			saveextra(
-				"README",
-				nil,
-				"Script",
-				"--[[\n"
-					.. [[
-		Thank you for using the best rigged instance by itsrepo. ( i did NOT make this, i just changed the info credits for the ppl who did make this)
-
-		If you didn't save in Binary - we recommended to save the game right away to take advantage of the binary format & to preserve values of certain properties if you used IgnoreDefaultProperties setting (as they might change in the future).
-		You can do that by going to FILE -> Save to File As -> Make sure File Name ends with .rbxl -> Save
-
-		If your player cannot spawn into the game, please move the scripts in StarterPlayeelsewhere (This is done by default).
-
-		If the chat system does not work, please use the explorer and delete everything inside the TextChatService/Chat service(s). 
-
-		Or run `game:GetService("Chat"):ClearAllChildren()`
-				
-		If Union and MeshPart collisions don't work, run the script below in the Studio Command Bar:
-				
-				
-		local C = game:GetService("CoreGui")
-		local D = Enum.CollisionFidelity.Default
-				
-		for _, v in game:GetDescendants() do
-			if v:IsA("TriangleMeshPart") and not v:IsDescendantOf(C) then
-				v.CollisionFidelity = D
-			end
-		end
-				
-		If you can't move the Camera, run the scripts in the Studio Command Bar:
-			
-		workspace.CurrentCamera.CameraType = Enum.CameraType.Fixed
-				
-		This file was generated with the following settings:
-				]]
-					.. service.HttpService:JSONEncode(OPTIONS)
-					.. "\n\n\t\tElapsed time: "
-					.. os.clock() - elapse_t
-					.. "\n]]"
-			)
-		end
+        if OPTIONS.ReadMe then
+            saveextra(
+                "readme",
+                nil,
+                "Script",
+                "--[[\n"
+                .. [[
+                Thanks for using this script.
+        
+                If you wish to clear out barriers that don't exist, please use the following script:
+        
+                local objects = game:GetService("Workspace"):GetDescendants()
+        
+                for _, object in ipairs(objects) do
+                    if object:IsA("MeshPart") then
+                        object.CollisionFidelity = Enum.CollisionFidelity.PreciseConvexDecomposition
+                        print("Changed CollisionFidelity of " .. object.Name .. " to PreciseConvexDecomposition")
+                    end
+                end
+        
+                Please note: This is still a work in progress, so don't expect full functionality yet.
+        
+                This script was decompiled using RepCompiler.
+        
+                Options: 
+                ]]
+                .. service.HttpService:JSONEncode(OPTIONS)
+                .. "\n\nElapsed time: "
+                .. os.clock() - elapse_t
+                .. "\n]]"
+            )
+        end
 
 		local tmp = { "<SharedStrings>" }
 		for Identifier, Value in SharedStrings do
 			table.insert(tmp, '<SharedString md5="' .. Identifier .. '">' .. Value .. "</SharedString>")
 		end
 
-		if 1 < #tmp then -- TODO: This sucks so much because we try to iterate a table just to check this (check above)
+		if 1 < #tmp then
 			table.insert(savebuffer, table.concat(tmp))
 			table.insert(savebuffer, "</SharedStrings>")
 		end
@@ -1911,48 +1910,52 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 		savecache()
 	end
 
-	local Connections
-	do
-		local Players = service.Players
-		local LocalPlayer = Players.LocalPlayer
-
-		if IgnoreList.Model ~= true then
-			Connections = {}
-			local function IgnoreCharacter(Player)
-				table.insert(
-					Connections,
-					Player.CharacterAdded:Connect(function(Character)
-						IgnoreList[Character] = true
-					end)
-				)
-
-				local Character = Player.Character
-				if Character then
-					IgnoreList[Character] = true
-				end
-			end
-
-			if OPTIONS.RemovePlayerCharacters then
-				table.insert(
-					Connections,
-					Players.PlayerAdded:Connect(function(Player)
-						IgnoreCharacter(Player)
-					end)
-				)
-				for _, Player in Players:GetPlayers() do
-					IgnoreCharacter(Player)
-				end
-			else
-				IgnoreNotArchivable = false -- TODO Bad solution (Characters are NotArchivable); Also make sure the next solution is compatible with IsolateLocalPlayerCharacter
-				if IsolateLocalPlayerCharacter then
-					IgnoreCharacter(LocalPlayer)
-				end
-			end
-		end
-		if IsolateLocalPlayer and IgnoreList.Player ~= true then
-			IgnoreList[LocalPlayer] = true
-		end
-	end
+    local Connections
+    do
+        local Players = service.Players
+        local LocalPlayer = Players.LocalPlayer
+    
+        if IgnoreList.Model ~= true then
+            Connections = {}
+            local function IgnoreCharacter(Player)
+                table.insert(
+                    Connections,
+                    Player.CharacterAdded:Connect(function(Character)
+                        IgnoreList[Character] = true
+                    end)
+                )
+    
+                local Character = Player.Character
+                if Character then
+                    IgnoreList[Character] = true
+                end
+            end
+    
+            if OPTIONS.RemovePlayerCharacters then
+                table.insert(
+                    Connections,
+                    Players.PlayerAdded:Connect(function(Player)
+                        Player.CharacterAdded:Connect(function()
+                            IgnoreCharacter(Player)
+                        end)
+                    end)
+                )
+    
+                for _, Player in Players:GetPlayers() do
+                    IgnoreCharacter(Player)
+                end
+            else
+                IgnoreNotArchivable = false 
+                if IsolateLocalPlayerCharacter then
+                    IgnoreCharacter(LocalPlayer)
+                end
+            end
+        end
+    
+        if IsolateLocalPlayer and IgnoreList[LocalPlayer] ~= true then
+            IgnoreList[LocalPlayer] = true
+        end
+    end
 
 	if IsolateStarterPlayer then
 		IgnoreList.StarterPlayer = false
@@ -1968,7 +1971,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 
 	do
 		if OPTIONS.SafeMode then
-			service.Players.LocalPlayer:Kick("\nSaving in Progress..\nPlease do NOT leave")
+			service.Players.LocalPlayer:Kick("Don't leave.")
 			task.delay(5, service.GuiService.ClearError, service.GuiService)
 		end
 
@@ -1988,8 +1991,8 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 					StatusText.Text = string.format("Saved! Time %.3f seconds; Size %s", elapse_t, getsizeformat())
 					task.wait(Log10 * 2 + ExtraTime)
 				else
-					StatusText.Text = "Failed! Check F9 console for more info"
-					warn("Error found while saving:")
+					StatusText.Text = "/console"
+					warn("error")
 					warn(err)
 					task.wait(Log10 + ExtraTime)
 				end
