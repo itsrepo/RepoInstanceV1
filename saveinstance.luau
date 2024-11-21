@@ -794,7 +794,7 @@ local function CreateStatusText()
 
 	StatusText = Instance.new("TextLabel")
 
-	StatusText.Text = "Saving..."
+	StatusText.Text = "Saving, will be written to file as: model ", game.PlaceId .. " | ", game.Name
 
 	StatusText.BackgroundTransparency = 1
 	StatusText.Font = Enum.Font.Code
